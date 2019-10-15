@@ -1,0 +1,3 @@
+D:/prog/praki_u_sobaku/TreesPrac/cmake-build-debug/CMakeFiles/TreesDrawer.dir
+D:/prog/praki_u_sobaku/TreesPrac/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/prog/praki_u_sobaku/TreesPrac/cmake-build-debug/CMakeFiles/rebuild_cache.dir

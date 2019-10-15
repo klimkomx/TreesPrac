@@ -4,26 +4,30 @@
 
 #ifndef TREESDRAWER_REDBLACKTREE_H
 #define TREESDRAWER_REDBLACKTREE_H
-namespace RedBlackTreeNode {
-    class Node {
-    public:
-        bool black;
-        int value;
-        Node *left, *right, *father;
 
-        Node(int, bool, Node *, Node *);
-    };
-}
+class RedBlackTreeNode {
+public:
+    bool color;//0 - black; 1 - red
+    int value;
+    RedBlackTreeNode *left, *right, *parent;
+
+    RedBlackTreeNode(int, bool, RedBlackTreeNode *, RedBlackTreeNode *);
+    RedBlackTreeNode();
+};
+
 class RedBlackTree {
 private:
-    RedBlackTreeNode::Node* root;
+    RedBlackTreeNode * root, *nil;
+    void deleting(RedBlackTreeNode*);
+    void leftRotate();
+    void rightRotate();
 public:
-    RedBlackTree() {
-        root = nullptr;
-    }
+    RedBlackTree();
+    ~RedBlackTree();
+
     void insert(int);
     void erase(int);
-    RedBlackTreeNode::Node* search(int key);
+    RedBlackTreeNode* search(int);
 };
 
 
