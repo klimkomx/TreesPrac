@@ -12,22 +12,23 @@ public:
     RedBlackTreeNode *left, *right, *parent;
 
     RedBlackTreeNode(int, bool, RedBlackTreeNode *, RedBlackTreeNode *);
-    RedBlackTreeNode();
+    ~RedBlackTreeNode();
 };
 
 class RedBlackTree {
 private:
-    RedBlackTreeNode * root, *nil;
-    void deleting(RedBlackTreeNode*);
-    void leftRotate();
-    void rightRotate();
+    RedBlackTreeNode * root, * nil;
+    void deletingFix(RedBlackTreeNode *);
+    void leftRotate(RedBlackTreeNode *);
+    void rightRotate(RedBlackTreeNode *);
+    void insertingFix(RedBlackTreeNode *);
 public:
     RedBlackTree();
     ~RedBlackTree();
 
     void insert(int);
     void erase(int);
-    RedBlackTreeNode* search(int);
+    RedBlackTreeNode * search(int);
 };
 
 
