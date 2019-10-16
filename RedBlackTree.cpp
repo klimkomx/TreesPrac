@@ -236,6 +236,7 @@ void RedBlackTree::erase(int key) {
         z -> value = chosen -> value;
     if (chosen -> color == false)
         deletingFix(chosen);
+    chosen -> left = chosen -> right = nullptr;
     delete chosen;
     return;
 }

@@ -5,9 +5,24 @@
 #ifndef TREESDRAWER_AVLTREE_H
 #define TREESDRAWER_AVLTREE_H
 
+class AvlTreeNode {
+private:
+
+public:
+    int value, height;
+    AvlTreeNode * left, * right;
+    AvlTreeNode(int, AvlTreeNode *, AvlTreeNode *);
+    ~AvlTreeNode();
+};
 
 class AvlTree {
-
+private:
+    AvlTreeNode * root;
+public:
+    AvlTree();
+    ~AvlTree();
+    void insert(int);
+    void erase(int);
 };
 
 
