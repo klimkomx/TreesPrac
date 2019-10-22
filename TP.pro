@@ -25,10 +25,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        AvlTree.cpp \
+        RedBlackTree.cpp \
+#        SplayTree.cpp \
         main.cpp \
         mainwindow.cpp
 
 HEADERS += \
+        AvlTree.h \
+        RedBlackTree.h \
+#        SplayTree.h \
         mainwindow.h
 
 # Default rules for deployment.
