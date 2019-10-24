@@ -11,20 +11,18 @@ public:
     int value;
     RedBlackTreeNode *left, *right, *parent;
 
-    RedBlackTreeNode(int, bool, RedBlackTreeNode *, RedBlackTreeNode *);
-    ~RedBlackTreeNode();
+    RedBlackTreeNode(int, bool, RedBlackTreeNode *, RedBlackTreeNode *, RedBlackTreeNode *);
 };
 
 class RedBlackTree {
 private:
-    RedBlackTreeNode * root, * nil;
     void deletingFix(RedBlackTreeNode *);
     void leftRotate(RedBlackTreeNode *);
     void rightRotate(RedBlackTreeNode *);
     void insertingFix(RedBlackTreeNode *);
 public:
+    RedBlackTreeNode * root, *nil;
     RedBlackTree();
-    ~RedBlackTree();
 
     void insert(int);
     void erase(int);

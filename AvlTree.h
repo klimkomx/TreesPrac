@@ -12,13 +12,13 @@ public:
     int value, height;
     AvlTreeNode * left, * right;
     AvlTreeNode(int, AvlTreeNode *, AvlTreeNode *);
-    ~AvlTreeNode();
+//    ~AvlTreeNode();
 };
 
 class AvlTree {
 private:
-    AvlTreeNode * root;
 public:
+    AvlTreeNode * root;
     AvlTree();
     ~AvlTree();
     void insert(int);

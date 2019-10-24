@@ -3,83 +3,94 @@
 //
 
 #include "RedBlackTree.h"
+#include <algorithm>
 
 //Constructors/Destructors
 
-RedBlackTreeNode::RedBlackTreeNode(int key, bool colorr, RedBlackTreeNode* leftt, RedBlackTreeNode* rightt) {
+RedBlackTreeNode::RedBlackTreeNode(int key, bool colorr, RedBlackTreeNode* leftt, RedBlackTreeNode* rightt, RedBlackTreeNode* paren) {
     value = key;
-    parent = nullptr;
+    parent = paren;
     color = colorr;
     left = leftt;
     right = rightt;
     return;
 }
 
-RedBlackTreeNode::~RedBlackTreeNode() {
-    if (left != nullptr)
-        delete left;
-    if (right != nullptr)
-        delete right;
-    delete this;
-    return;
-}
 
 RedBlackTree::RedBlackTree() {
-    root = nil = new RedBlackTreeNode(-1, false, nullptr, nullptr);
+    root = nil = new RedBlackTreeNode(-1, false, nullptr, nullptr, nullptr);
     nil -> left = nil -> right = nil;
     return;
 }
 
-RedBlackTree::~RedBlackTree() {
-    if (root != nullptr)
-        delete root;
-    else
-        delete nil;
-    delete this;
-    return;
-}
+//RedBlackTree::~RedBlackTree() {
+//    if (root != nullptr)
+//        delete root;
+//    else
+//        delete nil;
+//    delete this;
+//    return;
+//}
 
 //Private Methods
 
 void RedBlackTree::rightRotate(RedBlackTreeNode * tmp) {
-    RedBlackTreeNode * ttp;
+    RedBlackTreeNode *left_child = tmp -> left;
+    tmp -> left = left_child -> right;
     if (tmp == root)
-        root = tmp -> left;
-    else if (tmp -> parent -> left == tmp)
-        tmp -> parent -> left = tmp -> left;
+        root = left_child;
+    else if (tmp -> parent -> right == tmp)
+        tmp -> parent -> right = left_child;
     else
-        tmp -> parent -> right = tmp -> left;
-    tmp -> left -> parent = tmp -> parent;
-    tmp -> parent = tmp -> left;
-    if (tmp -> left -> right != nullptr)
-        tmp -> left -> right -> parent = tmp;
-    ttp = tmp -> left;
-    tmp -> left = tmp -> left -> right;
-    ttp -> right = tmp;
+        tmp -> parent -> left = left_child;
+    if (tmp -> left != nil) {
+        tmp -> left -> parent = tmp;
+    }
+    left_child -> parent = tmp -> parent;
+//    tmp -> right -> parent = tmp -> parent;
+//    tmp -> parent = tmp -> right;
+    left_child -> right = tmp;
+    tmp -> parent = left_child;
+//    if (tmp -> right -> left != nil)
+//        tmp -> right -> left -> parent = tmp;
+//    ttp = tmp -> right;
+//    tmp -> right = tmp -> right -> left;
+//    ttp -> left = tmp;
     return;
 }
 
 void RedBlackTree::leftRotate(RedBlackTreeNode * tmp) {
-    RedBlackTreeNode * ttp;
+    RedBlackTreeNode *right_child = tmp -> right;
+    tmp -> right = right_child -> left;
     if (tmp == root)
-        root = tmp -> right;
+        root = right_child;
     else if (tmp -> parent -> right == tmp)
-        tmp -> parent -> right = tmp -> right;
+        tmp -> parent -> right = right_child;
     else
-        tmp -> parent -> left = tmp -> right;
-    tmp -> right -> parent = tmp -> parent;
-    tmp -> parent = tmp -> right;
-    if (tmp -> right -> left != nullptr)
-        tmp -> right -> left -> parent = tmp;
-    ttp = tmp -> right;
-    tmp -> right = tmp -> right -> left;
-    ttp -> left = tmp;
-    return;
+        tmp -> parent -> left = right_child;
+    if (tmp -> right != nil) {
+        tmp -> right -> parent = tmp;
+    }
+    right_child -> parent = tmp -> parent;
+//    tmp -> right -> parent = tmp -> parent;
+//    tmp -> parent = tmp -> right;
+    right_child -> left = tmp;
+    tmp -> parent = right_child;
+//    if (tmp -> right -> left != nil)
+//        tmp -> right -> left -> parent = tmp;
+//    ttp = tmp -> right;
+//    tmp -> right = tmp -> right -> left;
+//    ttp -> left = tmp;
+    return;    
 }
 
 void RedBlackTree::insertingFix(RedBlackTreeNode * node) {
     RedBlackTreeNode * uncle, * father, * grandfather;
-    while (node -> parent -> color) {
+    if (node == root) {
+        root -> color = false;
+        return;
+    }
+    while (node != root && node -> parent -> color && node ->color) {
         father = node -> parent;
         grandfather = father -> parent;
         if (grandfather -> left == father) {
@@ -87,87 +98,94 @@ void RedBlackTree::insertingFix(RedBlackTreeNode * node) {
             if (uncle -> color) {
                 uncle -> color = father -> color = false;
                 grandfather -> color = true;
+                node = grandfather;
             } else {
                 if (father -> right == node) {
                     node = father;
                     leftRotate(node);
+                    father = node -> parent;
                 }
-                node -> parent -> color = false;
-                grandfather -> color = true;
                 rightRotate(grandfather);
+                std::swap(node -> parent -> color, grandfather -> color);
+                node = father;
             }
         } else {
             uncle = grandfather -> left;
             if (uncle -> color) {
                 uncle -> color = father -> color = false;
                 grandfather -> color = true;
+                node = grandfather;
             } else {
                 if (father -> left == node) {
                     node = father;
                     rightRotate(node);
+                    father = node -> parent;
                 }
-                node -> parent -> color = false;
-                grandfather -> color = true;
                 leftRotate(grandfather);
+                std::swap(node -> parent -> color, grandfather -> color);
+                node = father;
             }
         }
     }
-    node -> color = false;
+    root -> color = false;
     return;
 }
 
 void RedBlackTree::deletingFix(RedBlackTreeNode * x) {
+    RedBlackTreeNode* parent;
     while (x != root && x -> color == false) {
+        parent = x -> parent;
         RedBlackTreeNode * tmp = nullptr;
-        if (x -> parent -> left == x) {
-            tmp = x -> parent -> right;
+        if (parent -> left == x) {
+            tmp = parent -> right;
             if (tmp -> color) {
                 tmp -> color = false;
-                x -> parent -> color = true;
+                 parent -> color = true;
                 leftRotate(x -> parent);
-            }
-            if (!tmp -> left -> color && !tmp -> right -> color) {
-                tmp -> color = true;
-                x = x -> parent;
-                x -> color = false;
             } else {
-                if (!tmp -> right -> color) {
-                    tmp -> left -> color = false;
+                if (tmp != nil && !tmp -> left -> color && !tmp -> right -> color) {
                     tmp -> color = true;
-                    rightRotate(tmp);
-                    tmp = x -> parent -> right;
+                    x = parent;
+                    x -> color = false;
+                } else {
+                    if (tmp != nil && !tmp -> right -> color) {
+                        tmp -> left -> color = false;
+                        tmp -> color = true;
+                        rightRotate(tmp);
+                        tmp = parent -> right;
+                    }
+                    tmp -> color = parent -> color;
+                    tmp -> right -> color = parent -> color = false;
+                    leftRotate(parent);
+                    break;
                 }
-                tmp -> color = tmp -> parent -> color;
-                tmp -> right -> color = x -> parent -> color = false;
-                leftRotate(x -> parent);
-                x = root;
             }
         } else {
-            tmp = x -> parent -> left;
+            tmp = parent -> left;
             if (tmp -> color) {
                 tmp -> color = false;
-                x -> parent -> color = true;
+                parent -> color = true;
                 rightRotate(x -> parent);
-            }
-            if (!tmp -> left -> color && !tmp -> right -> color) {
-                tmp -> color = true;
-                x = x -> parent;
-                x -> color = false;
             } else {
-                if (!tmp->left->color) {
-                    tmp->right->color = false;
-                    tmp->color = true;
-                    leftRotate(tmp);
-                    tmp = x->parent->left;
+                if (tmp != nil && !tmp -> left -> color && !tmp -> right -> color) {
+                    tmp -> color = true;
+                    x = parent;
+                    x -> color = false;
+                } else {
+                    if (tmp != nil && !tmp -> left -> color) {
+                        tmp -> right -> color = false;
+                        tmp -> color = true;
+                        leftRotate(tmp);
+                        tmp = parent -> left;
+                    }
+                    tmp -> color = parent -> color;
+                    tmp -> left -> color = parent -> color = false;
+                    rightRotate(parent);
+                    break;
                 }
-                tmp->color = tmp->parent->color;
-                tmp->left->color = x->parent->color = false;
-                rightRotate(x->parent);
-                x = root;
             }
         }
     }
-    x -> color = false;
     return;
 }
 
@@ -185,7 +203,7 @@ RedBlackTreeNode* RedBlackTree::search(int key) {
 }
 
 void RedBlackTree::insert(int key) {
-    RedBlackTreeNode *insertingElement = new RedBlackTreeNode(key, 1, nil, nil);
+    RedBlackTreeNode *insertingElement = new RedBlackTreeNode(key, 1, nil, nil, nil);
     if (root == nil) {
         root = insertingElement;
         root -> color = 0;
@@ -194,49 +212,63 @@ void RedBlackTree::insert(int key) {
         RedBlackTreeNode *iterator1 = root, *iterator2 = nil;
         while (iterator1 != nil) {
             iterator2 =iterator1;
+            if (iterator1 -> value == key)
+                return;
             if (iterator1->value < key)
                 iterator1 = iterator1 -> right;
             else
                 iterator1 = iterator1 -> left;
         }
         insertingElement -> parent = iterator2;
-        if (iterator2->value < insertingElement -> value)
+        if (iterator2->value < insertingElement -> value) {
+            iterator2 -> right -> parent = iterator2;
             iterator2 -> right = insertingElement;
-        else
+        }
+        else {
+            iterator2 -> left -> parent = iterator2;
             iterator2 -> left = insertingElement;
+        }
         insertingFix(insertingElement);
     }
 }
 
 void RedBlackTree::erase(int key) {
-    RedBlackTreeNode * z = search(key), *x = nil, *chosen = nil;
+    RedBlackTreeNode * z = search(key), *chosen = nil;
     if (z == nil)
         return;
     if (z -> left == nil || z -> right == nil)
         chosen = z;
     else {
-        chosen == z -> right;
+        chosen = z -> right;
         while (chosen -> left != nil)
             chosen = chosen -> left;
     }
-    if (chosen -> left != nil)
-        x = chosen -> left;
-    else
-        x = chosen -> right;
-    x -> parent = chosen -> parent;
-    if (chosen -> parent == nil)
-        root = x;
-    else {
-        if (chosen == chosen -> parent -> left)
-            chosen -> parent -> left = x;
-        else
-            chosen -> parent -> right = x;
+    std::swap(chosen -> value, z->value);
+    if (chosen == root) {
+        delete chosen;
+        root = nil;
+        return;
     }
-    if (chosen != z)
-        z -> value = chosen -> value;
-    if (chosen -> color == false)
-        deletingFix(chosen);
-    chosen -> left = chosen -> right = nullptr;
+    if (chosen -> color || chosen -> left -> color|| chosen -> right -> color) {
+            RedBlackTreeNode *child = chosen->left != nullptr ? chosen->left : chosen->right;
+
+            if (chosen == chosen->parent->left) {
+                chosen->parent->left = child;
+            } else {
+                chosen->parent->right = child;
+            }
+            if (child != nullptr)
+                child->parent = chosen->parent;
+            child -> color = 0;
+            delete chosen;
+            return;
+    }
+    deletingFix(chosen);
+    if (chosen -> parent -> left == chosen)
+        chosen -> parent -> left = nil;
+    else
+        chosen -> parent -> right = nil;
     delete chosen;
+    root -> color = false;
     return;
 }

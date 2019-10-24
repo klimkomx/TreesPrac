@@ -9,9 +9,9 @@
 int getHeight(AvlTreeNode * node) {
     return (node == nullptr) ? 0 : node -> height;
 }
-int fixHeight(AvlTreeNode * node) {
+void fixHeight(AvlTreeNode * node) {
     int h1 = getHeight(node -> left), h2 = getHeight(node -> right);
-    return (h1 > h2) ? h1 + 1 : h2 + 1;
+    node -> height = (h1 > h2) ? h1 + 1 : h2 + 1;
 }
 int bf(AvlTreeNode * node) {
     return getHeight(node -> right) - getHeight(node -> left);
@@ -21,21 +21,21 @@ int bf(AvlTreeNode * node) {
 AvlTreeNode::AvlTreeNode(int key, AvlTreeNode * l = nullptr, AvlTreeNode * r = nullptr) {
     left = l, right = r;
     value = key;
-    height = fixHeight(this);
+    fixHeight(this);
     return;
 }
-AvlTreeNode::~AvlTreeNode() {
-    if (left != nullptr)
-        delete left;
-    if (right != nullptr)
-        delete right;
-    delete this;
-    return;
-}
+//AvlTreeNode::~AvlTreeNode() {
+//    if (left != nullptr)
+//        delete left;
+//    if (right != nullptr)
+//        delete right;
+//    delete this;
+//    return;
+//}
 
 //Tree
 AvlTree::AvlTree() {
-    root == nullptr;
+    root = nullptr;
     return;
 }
 AvlTree::~AvlTree() {
@@ -47,8 +47,8 @@ AvlTreeNode * rotateRight(AvlTreeNode * node) {
     AvlTreeNode * node_ = node -> left;
     node -> left = node_ -> right;
     node_ -> right = node;
-    fixHeight(node_);
     fixHeight(node);
+    fixHeight(node_);
     return node_;
 }
 
@@ -56,8 +56,8 @@ AvlTreeNode * rotateLeft(AvlTreeNode * node) {
     AvlTreeNode * node_ = node -> right;
     node -> right = node_ -> left;
     node_ -> left = node;
-    fixHeight(node_);
     fixHeight(node);
+    fixHeight(node_);
     return node_;
 }
 
@@ -89,6 +89,8 @@ AvlTreeNode * removeDeletor(AvlTreeNode * nowNode) {
 AvlTreeNode * insertion(int key, AvlTreeNode * root) {
     if (root == nullptr)
         return new AvlTreeNode(key);
+    if (root -> value == key)
+        return root;
     if (root ->value < key)
         root -> right = insertion(key, root -> right);
     else
@@ -110,8 +112,8 @@ AvlTreeNode * deletion(int key, AvlTreeNode * root) {
         if (rightNode == nullptr)
             return leftNode;
         root = findDeletor(rightNode);
-        root -> left = leftNode;
         root -> right = removeDeletor(rightNode);
+        root -> left = leftNode;
     }
     return balancing(root);
 }
