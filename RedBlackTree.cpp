@@ -133,7 +133,9 @@ void RedBlackTree::insertingFix(RedBlackTreeNode * node) {
 
 void RedBlackTree::deletingFix(RedBlackTreeNode * x) {
     RedBlackTreeNode* parent;
-    while (x != root && x -> color == false) {
+    bool contin  = 1;
+    while (x != root && x -> color == false && contin) {
+        contin = 0;
         parent = x -> parent;
         RedBlackTreeNode * tmp = nullptr;
         if (parent -> left == x) {
@@ -146,6 +148,8 @@ void RedBlackTree::deletingFix(RedBlackTreeNode * x) {
                 if (tmp != nil && !tmp -> left -> color && !tmp -> right -> color) {
                     tmp -> color = true;
                     x = parent;
+                    if (!x -> color)
+                        contin = 1;
                     x -> color = false;
                 } else {
                     if (tmp != nil && !tmp -> right -> color) {
@@ -170,6 +174,8 @@ void RedBlackTree::deletingFix(RedBlackTreeNode * x) {
                 if (tmp != nil && !tmp -> left -> color && !tmp -> right -> color) {
                     tmp -> color = true;
                     x = parent;
+                    if (!x -> color)
+                        contin = 1;
                     x -> color = false;
                 } else {
                     if (tmp != nil && !tmp -> left -> color) {
