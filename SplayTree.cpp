@@ -1,113 +1,171 @@
-//
-// Created by Dell G-3 on 16.10.2019.
-//
 #include <utility>
- using std::pair;
+#include <iostream>
 
-class SplayTreeNode {
-public:
-    int value;
-    SplayTreeNode * right, * left, * parent;
-    SplayTreeNode() {
-        left = right = parent = nullptr;
+struct SplayTreeNode{
+    SplayTreeNode * l = nullptr;
+    SplayTreeNode * r = nullptr;
+    SplayTreeNode * p = nullptr;
+    int val;
+    SplayTreeNode():l(nullptr), r(nullptr), p(nullptr), val(0){}
+    SplayTreeNode(int x):l(nullptr), r(nullptr), p(nullptr), val(x){}
+
+    ~SplayTreeNode(){
+        if (l)
+            delete l;
+        if (r)
+            delete r;
     }
 };
-class SplayTree {
+
+class splayTree{
 public:
-    SplayTreeNode * root;
-    SplayTree() {
-        root = nullptr;
+    splayTree():root(nullptr){};
+    SplayTreeNode * root = nullptr;
+
+    inline void setParent(SplayTreeNode * child, SplayTreeNode * parent){
+        if (child != nullptr)
+            child -> p = parent;
     }
-    void rotateLeft(SplayTreeNode * v) {
-        SplayTreeNode * parent = v -> parent,
-                * rightNode = v -> right;
-        if (parent != nullptr) {
-            if (parent -> left == v)
-                parent -> left = rightNode;
-            else
-                parent -> right = rightNode;
-        }
-        SplayTreeNode * tmp = rightNode -> left;
-        rightNode -> left = v;
-        v -> right = tmp;
-        v -> parent = rightNode;
-        rightNode -> parent = parent;
-        if (v -> right != nullptr)
-            tmp -> parent = v;
-        return;
-    }
-    void rotateRight(SplayTreeNode * v) {
-        SplayTreeNode * parent = v -> parent,
-                * leftNode = v -> left;
-        if (parent != nullptr) {
-            if (parent -> left == v)
-                parent -> left = leftNode;
-            else
-                parent -> right = leftNode;
-        }
-        SplayTreeNode * tmp = leftNode -> right;
-        leftNode -> right = v;
-        v -> left = tmp;
-        v -> parent = leftNode;
-        leftNode -> parent = parent;
-        if (v -> left != nullptr)
-            tmp -> parent = v;
-        return;
-    }
-    void splay(SplayTreeNode * v) {
+
+    inline void restoreParent(SplayTreeNode * v){
         if (v == nullptr)
             return;
-        while (v -> parent != nullptr) {
-            if (v == v -> parent -> left) {
-                if (v -> parent -> parent == nullptr)
-                    rotateRight(v -> parent);
-                else if (v -> parent == v -> parent -> parent -> left) {
-                    rotateRight(v -> parent -> parent);
-                    rotateRight(v -> parent);
-                } else {
-                    rotateRight(v -> parent);
-                    rotateLeft(v -> parent);
-                }
-            } else {
-                if (v -> parent -> parent == nullptr)
-                    rotateLeft(v -> parent);
-                else if (v -> parent == v -> parent -> parent -> right) {
-                    rotateLeft(v -> parent -> parent);
-                    rotateLeft(v -> parent);
-                } else {
-                    rotateLeft(v -> parent);
-                    rotateRight(v -> parent);
-                }
-            }
-        }
+        setParent(v -> l, v);
+        setParent(v -> r, v);
     }
-    SplayTreeNode * findNode(SplayTreeNode* v, int key) {
+
+    void rotate(SplayTreeNode * parent, SplayTreeNode * child){
+        SplayTreeNode * gp = parent -> p;
+        if (gp != nullptr)
+            if (gp -> l == parent)
+                gp -> l = child;
+            else
+                gp -> r = child;
+
+        if (parent -> l == child){
+            parent -> l = child -> r;
+            child -> r = parent;
+        } else{
+            parent -> r = child -> l;
+            child -> l = parent;
+        }
+
+        restoreParent(child);
+        restoreParent(parent);
+        child -> p = gp;
+    }
+
+    SplayTreeNode * splay (SplayTreeNode * v){
+        if (v -> p == nullptr)
+            return v;
+        SplayTreeNode * p = v -> p;
+        SplayTreeNode * gp = p -> p;
+        if (gp == nullptr) {
+            rotate(p, v);
+            return v;
+        }
+
+        bool zigzig = (gp -> l == p) == (p -> l == v);
+
+        if (zigzig){
+            rotate(gp, p);
+            rotate(p, v);
+        } else{
+            rotate(p, v);
+            rotate(gp, v);
+        }
+        return splay(v);
+    }
+
+    SplayTreeNode * find(SplayTreeNode * v, int val){
         if (v == nullptr)
             return nullptr;
-        if (v -> value > key)
-            return findNode(v ->left, key);
-        else if (v -> value < key)
-            return findNode(v ->right, key);
-        else return v;
+        if (v -> val == val)
+            return splay(v);
+        if (val < v -> val && v -> l != nullptr)
+            return find(v -> l, val);
+        if (val > v -> val && v -> r != nullptr)
+            return find(v -> r, val);
+        return splay(v);
     }
-    SplayTreeNode * merging(SplayTreeNode* r1, SplayTreeNode * r2) {
-        SplayTreeNode * tmp = r1;
-        while (tmp -> right != nullptr)
-            tmp = tmp -> right;
-        tmp -> right = r2;
-        if (r2 != nullptr)
-            r2 -> parent = tmp;
-        splay(tmp);
-        return tmp;
+
+    std::pair<SplayTreeNode *, SplayTreeNode *> split(SplayTreeNode * rt, int val){
+        if (rt == nullptr)
+            return {nullptr, nullptr};
+        rt = find(rt, val);
+        if (rt -> val == val){
+            std::pair<SplayTreeNode *, SplayTreeNode *> ans = {rt -> l, rt -> r};
+            setParent(rt -> l, nullptr);
+            setParent(rt -> r, nullptr);
+            rt -> l = rt -> r = nullptr;
+            delete rt;
+            return ans;
+        }
+        if (rt -> val < val){
+            SplayTreeNode * r = rt -> r;
+            setParent(r, nullptr);
+            rt -> r = nullptr;
+            return {rt, r};
+        }
+
+        SplayTreeNode * l = rt -> l;
+        rt -> l = nullptr;
+        setParent(l, nullptr);
+        return {l, rt};
     }
-//    pair<SplayTreeNode *, SplayTreeNode *> split(SplayTreeNode * r, int x) {
-//        SplayTreeNode *lp, *rp;
-//        if (tmp == nullptr) return {r, nullptr};
-//        splay(tmp);
-//        lp = tmp -> left;
-//        rp = tmp -> right;
-//        delete tmp;
-//        return {rp, lp};
-//    }
-//    void insert()
+
+    SplayTreeNode * insert(SplayTreeNode * rt, int val){
+        std::pair<SplayTreeNode *, SplayTreeNode *> res = split(rt, val);
+        rt = new SplayTreeNode(val);
+        rt -> l = res.first;
+        rt -> r = res.second;
+        restoreParent(rt);
+        return rt;
+    }
+
+    SplayTreeNode * merge(SplayTreeNode * left, SplayTreeNode * right){
+        if (left == nullptr)
+            return right;
+        if (right == nullptr)
+            return left;
+        right = find(right, left->val);
+        right -> l = left;
+        left -> p = right;
+        return right;
+    }
+
+    SplayTreeNode * erase(SplayTreeNode * v, int val){
+        SplayTreeNode * rt = find(root, val);
+        if (rt == nullptr || rt -> val != val)
+            return rt;
+        setParent(rt -> l, nullptr);
+        setParent(rt -> r, nullptr);
+        std::pair <SplayTreeNode *, SplayTreeNode *> ans = {rt -> l, rt -> r};
+        rt -> l = rt -> r = nullptr;
+                delete rt;
+        return merge(ans.first, ans.second);
+    }
+
+    SplayTreeNode * erase(int val){
+        root = erase(root, val);
+    }
+
+
+
+    void print(SplayTreeNode * rt){
+        if (rt == nullptr)
+            return;
+        print(rt -> l);
+        std::cout << rt -> val << ' ';
+        print(rt -> r);
+    }
+
+public:
+    void insert(int val){
+        root = insert(root, val);
+    }
+
+    void print(){
+        print(root);
+    }
 };

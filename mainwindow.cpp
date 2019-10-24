@@ -40,12 +40,12 @@
 
 #include "AvlTree.h"
 #include "RedBlackTree.h"
-//#include "SplayTree.h"
+#include "SplayTree.cpp"
 
 const int WIDTHCONST = 6, HEIGHTCONST = 40, DELTA = 15;
 
 QLineEdit *insertEraseArea;
-QPushButton * insert, * erase;
+QPushButton * insert, * erase, *plusSize, *minusSize;
 QGraphicsScene *pool;
 QComboBox *chooseTree;
 QGraphicsView * place;
@@ -58,6 +58,7 @@ namespace trees {
 int displayed = 0;
 RedBlackTree * RedBlack = new RedBlackTree();
 AvlTree * AVL = new AvlTree();
+splayTree * SP = new splayTree();
 }
 int getrasr(long long value) {
     int ans = 0;
@@ -81,6 +82,9 @@ int reDrawRB(RedBlackTreeNode * root, int x = 0, int h = 0, bool isLeft = 0, int
         pool -> addRect(xcord, h*(HEIGHTCONST + DELTA), length *WIDTHCONST+DELTA, HEIGHTCONST, *pen, *brushr);
         QGraphicsTextItem* tItem = new QGraphicsTextItem(QString::number(root -> value));
         tItem -> setPos(xcord, h*(HEIGHTCONST+DELTA));
+        if (root == trees::RedBlack -> root) {
+            place -> centerOn(xcord, h*(HEIGHTCONST + DELTA));
+        }
         pool -> addItem(tItem);
     } else {
         pool -> addRect(xcord, h*(HEIGHTCONST + DELTA), length *WIDTHCONST+DELTA,  HEIGHTCONST, *pen, *brushb);
@@ -88,6 +92,9 @@ int reDrawRB(RedBlackTreeNode * root, int x = 0, int h = 0, bool isLeft = 0, int
         tItem -> setDefaultTextColor(*white);
         tItem -> setPos(xcord, h*(HEIGHTCONST+DELTA));
         pool -> addItem(tItem);
+    }
+    if (root == trees::RedBlack -> root) {
+        place -> centerOn(xcord, h*(HEIGHTCONST + DELTA));
     }
     xcord+=length*WIDTHCONST+2*DELTA;
     if (root -> right != trees::RedBlack -> nil) {
@@ -114,6 +121,9 @@ int reDrawAVL(AvlTreeNode* root, int x = 0, int h = 0, bool isLeft = 0, int lele
     QGraphicsTextItem* tItem = new QGraphicsTextItem(QString::number(root -> value));
     tItem -> setDefaultTextColor(*white);
     tItem -> setPos(xcord, h*(HEIGHTCONST+DELTA));
+    if (root == trees::AVL -> root) {
+        place -> centerOn(xcord, h*(HEIGHTCONST + DELTA));
+    }
     pool -> addItem(tItem);
 
     xcord+=length*WIDTHCONST+2*DELTA;
@@ -128,9 +138,35 @@ int reDrawAVL(AvlTreeNode* root, int x = 0, int h = 0, bool isLeft = 0, int lele
     }
     return xcord;
 }
-void reDrawSP() {
+int reDrawSP(SplayTreeNode* root, int x = 0, int h = 0, bool isLeft = 0, int lele = 0) {
+    if (root == nullptr)
+        return -1;
+    int xcord = x;
+    int xcordf = xcord, xcords = xcord;
+    int length = getrasr(root -> val);
+    if (root -> l != nullptr) {
+        xcords = xcord = reDrawSP(root -> l, xcord, h + 1, 1, length);
+    }
+    pool -> addRect(xcord, h*(HEIGHTCONST + DELTA), length *WIDTHCONST+DELTA,  HEIGHTCONST, *pen, *brushb);
+    QGraphicsTextItem* tItem = new QGraphicsTextItem(QString::number(root -> val));
+    tItem -> setDefaultTextColor(*white);
+    tItem -> setPos(xcord, h*(HEIGHTCONST+DELTA));
+    if (root == trees::SP -> root) {
+        place -> centerOn(xcord, h*(HEIGHTCONST + DELTA));
+    }
+    pool -> addItem(tItem);
 
-
+    xcord+=length*WIDTHCONST+2*DELTA;
+    if (root -> r != nullptr) {
+        xcord = reDrawSP(root -> r, xcord, h+1, 0, length);
+    }
+    if (root != trees::SP -> root) {
+        if (!isLeft)
+            pool -> addLine(xcords, h*(HEIGHTCONST + DELTA), xcordf - DELTA, h*(HEIGHTCONST + DELTA) - DELTA);
+        else
+            pool -> addLine(xcords+length *WIDTHCONST+DELTA, h*(HEIGHTCONST + DELTA), xcord, h*(HEIGHTCONST + DELTA) - DELTA);
+    }
+    return xcord;
 }
 void reDraw() {
     pool -> clear();
@@ -139,7 +175,7 @@ void reDraw() {
     } else if (trees::displayed == 1) {
         reDrawAVL(trees::AVL -> root);
     } else {
-
+        reDrawSP(trees::SP -> root);
     }
     pool -> update();
     return;
@@ -153,6 +189,8 @@ void MainWindow::insertInTree() {
     int InsElem = insertEraseArea -> text().toInt();
     trees::AVL->insert(InsElem);
     trees::RedBlack->insert(InsElem);
+    trees::SP -> insert(InsElem);
+    insertEraseArea -> clear();
     reDraw();
 }
 
@@ -160,7 +198,17 @@ void MainWindow::eraseFromTree() {
     int InsElem = insertEraseArea -> text().toInt();
     trees::AVL->erase(InsElem);
     trees::RedBlack->erase(InsElem);
+    trees::SP -> erase(InsElem);
+    insertEraseArea -> clear();
     reDraw();
+}
+
+void MainWindow::sizeMore() {
+    place ->scale(1.25, 1.25);
+}
+
+void MainWindow::sizeLess() {
+    place -> scale(0.8, 0.8);
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -171,16 +219,23 @@ MainWindow::MainWindow(QWidget *parent) :
 //    this -> setStyleSheet("background-color : rgb(80, 80, 80);");
 
     insert = new QPushButton();
-    insert -> setStyleSheet("QPushButton {background-color : rgb(64, 212, 51); font : 20px; color : beige; border-style : outset;}"
+    insert -> setStyleSheet("QPushButton {background-color : rgb(64, 212, 51); font : 20px; color : beige; border-style : outset; min-height : 2em;}"
                                "QPushButton:hover{background-color : rgb(184, 247, 178); font : 20px; color : beige;}");
     insert -> setText(QString("Add value."));
 
     insertEraseArea = new QLineEdit();
 
     erase = new QPushButton();
-    erase -> setStyleSheet("QPushButton {background-color : rgb(64, 212, 51); font : 20px; color : beige; border-style : outset;}"
+    erase -> setStyleSheet("QPushButton {background-color : rgb(64, 212, 51); font : 20px; color : beige; border-style : outset; min-height : 2em;}"
                                "QPushButton:hover{background-color : rgb(184, 247, 178); font : 20px; color : beige;}");
     erase -> setText(QString("Erase value."));
+    plusSize = new QPushButton();
+    plusSize -> setStyleSheet("{font : 30px; color : beige; border-style : outset;}");
+    plusSize -> setText(QString("+"));
+
+    minusSize = new QPushButton();
+    minusSize -> setStyleSheet("{font : 30px; color : beige; border-style : outset;}");
+    minusSize -> setText(QString("-"));
 
     pool = new QGraphicsScene();
     chooseTree = new QComboBox();
@@ -195,10 +250,14 @@ MainWindow::MainWindow(QWidget *parent) :
     layout -> addWidget(insertEraseArea, 1, 10, 1, 2);
     layout -> addWidget(insert, 2, 10);
     layout -> addWidget(erase, 2, 11);
+    layout -> addWidget(plusSize, 3, 10);
+    layout -> addWidget(minusSize, 3, 11);
     this -> centralWidget() -> setLayout(layout);
     QObject::connect(chooseTree, SIGNAL(currentIndexChanged(int)), this, SLOT(redrawByTrees(int)));
     QObject::connect(insert, SIGNAL(clicked()), this, SLOT(insertInTree()));
     QObject::connect(erase, SIGNAL(clicked()), this, SLOT(eraseFromTree()));
+    QObject::connect(plusSize, SIGNAL(clicked()), this, SLOT(sizeMore()));
+    QObject::connect(minusSize, SIGNAL(clicked()), this, SLOT(sizeLess()));
 //    pool -> addRect(0, 0, 15, 20);
 //    pool -> addText("k");
 }

@@ -256,12 +256,13 @@ void RedBlackTree::erase(int key) {
         return;
     }
     if (chosen -> color || chosen -> left -> color|| chosen -> right -> color) {
-            RedBlackTreeNode *child = chosen->left != nullptr ? chosen->left : chosen->right;
-
-            if (chosen == chosen->parent->left) {
-                chosen->parent->left = child;
-            } else {
-                chosen->parent->right = child;
+            RedBlackTreeNode *child = chosen->left != nil ? chosen->left : chosen->right;
+            if (chosen -> parent != nil) {
+                if (chosen == chosen->parent->left) {
+                    chosen->parent->left = child;
+                } else {
+                    chosen->parent->right = child;
+                }
             }
             if (child != nullptr)
                 child->parent = chosen->parent;
